@@ -37,7 +37,7 @@ class NeDBDataSource {
    * @throws If the collection path resolves to a directory
    */
   resolveCollectionPath(config) {
-    const { collection } = config;
+    const { collection, bundlePath, area, bundle } = config;
     if (!collection) {
       throw Error("NeDB Loader does not specify collection path");
     }
@@ -50,10 +50,29 @@ class NeDBDataSource {
       throw new Error(`NeDB Loader collection name "${collection}" is invalid`);
     }
 
-    return path.resolve(
-      this.path,
-      collection + (collection.endsWith(".db") ? "" : ".db")
-    );
+    // Add '.db' extention if not already specified.
+    const collectionFilename =
+      collection + (collection.endsWith(".db") ? "" : ".db");
+
+    if (!bundlePath) {
+      // Use the default path.
+      return path.resolve(this.path, collectionFilename);
+    }
+
+    // Load from a bundle, or some other path relative to the root.
+
+    if (bundlePath.includes("[AREA]") && !area) {
+      throw new Error("No area configured for bundle path with [AREA]");
+    }
+
+    if (bundlePath.includes("[BUNDLE]") && !bundle) {
+      throw new Error("No bundle configured for bundle path with [BUNDLE]");
+    }
+
+    return require("path")
+      .join(this.rootPath, bundlePath, collectionFilename)
+      .replace("[AREA]", area)
+      .replace("[BUNDLE]", bundle);
   }
 }
 

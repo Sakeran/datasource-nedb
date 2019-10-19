@@ -98,4 +98,73 @@ it("resolves a valid collection name correctly", () => {
   );
 });
 
-it("creates a datasource file upon")
+it("throws when given a custom bundle path and no data", () => {
+  const nDB = helpers.Instance();
+
+  let config = {
+    collection: "bundleData",
+    bundlePath: "bundles/[BUNDLE]/misc"
+  };
+  expect(nDB.resolveCollectionPath.bind(nDB))
+    .withArgs(config)
+    .to.throwError();
+
+  config = {
+    collection: "npcs",
+    area: "test-area",
+    bundlePath: "bundles/[BUNDLE]/areas/[AREA]/"
+  };
+  expect(nDB.resolveCollectionPath.bind(nDB))
+    .withArgs(config)
+    .to.throwError();
+
+  config = {
+    collection: "npcs",
+    bundlePath: "bundles/[BUNDLE]/areas/[AREA]/"
+  };
+  expect(nDB.resolveCollectionPath.bind(nDB))
+    .withArgs(config)
+    .to.throwError();
+});
+
+it("resolves a custom bundle path with collection name", () => {
+  const nDB = helpers.Instance();
+
+  let config = {
+    collection: "bundleData",
+    bundle: "examples",
+    bundlePath: "bundles/[BUNDLE]/misc"
+  };
+  let collectionPath = nDB.resolveCollectionPath(config);
+  expect(collectionPath).to.be(
+    path.resolve(nDB.rootPath, "bundles/examples/misc/bundleData.db")
+  );
+
+  config = {
+    collection: "npcs",
+    area: "test-area",
+    bundle: "examples",
+    bundlePath: "bundles/[BUNDLE]/areas/[AREA]/"
+  };
+  collectionPath = nDB.resolveCollectionPath(config);
+  expect(collectionPath).to.be(
+    path.resolve(nDB.rootPath, "bundles/examples/areas/test-area/npcs.db")
+  );
+});
+
+xit("creates a datasource file upon loading if needed", () => {
+  const nDB = helpers.Instance();
+
+  let config = { collection: "players" };
+  let collectionPath = nDB.resolveCollectionPath(config);
+  expect(fs.existsSync(collectionPath)).to.be(false);
+
+  nDB.loadCollection(config);
+  expect(fs.existsSync(collectionPath)).to.be(true);
+});
+
+xit("contains a collection of loaded datasources", () => {
+  const nDB = helpers.Instance();
+  expect(nDB.datasources).to.be.a("object");
+  expect(nDB.datasources).to.be.empty();
+});
