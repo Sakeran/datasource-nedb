@@ -1,3 +1,5 @@
+"use strict";
+
 const NeDBDataSource = require("../src/NeDBDataSource");
 const expect = require("expect.js");
 const path = require("path");
@@ -32,14 +34,14 @@ it("doesn't throw when given a valid path config", () => {
 it("uses the rootPath by itself with no path config", () => {
   const root = helpers.DSDir();
   const nDS = new NeDBDataSource({}, root);
-  
+
   expect(nDS.path).to.be(path.resolve(root));
 });
 
 it("uses the path config when provided", () => {
   const root = helpers.DSDir();
-  const dbPath = 'data/db';
-  const nDS = new NeDBDataSource({path: dbPath}, root);
-  
+  const dbPath = "data/db";
+  const nDS = new NeDBDataSource({ path: dbPath }, root);
+
   expect(nDS.path).to.be(path.resolve(root, dbPath));
 });

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
