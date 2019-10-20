@@ -62,7 +62,7 @@ exports.Populate = async (nDB, count = 1, collection = "players") => {
 
   let entities = [];
   count = Math.max(1, count);
-  for (let i = 0; i <= count; i++) {
+  for (let i = 0; i < count; i++) {
     entities.push({});
   }
   entities = exports.Entities(...entities);

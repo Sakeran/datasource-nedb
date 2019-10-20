@@ -34,7 +34,42 @@ class NeDBDataSource {
     });
   }
 
-  fetchAll(config = {}) {}
+  async fetchAll(config = {}) {
+    const collection = await this.loadCollection(config);
+
+    const { fetchAllObject } = config;
+    let key;
+    if (fetchAllObject) {
+      key = this.resolveEntityKey(config);
+      if (!key) {
+        throw new Error(
+          "No key configured for NeDBDataSource 'fetchAll' action (in fetchAllObject mode)"
+        );
+      }
+    }
+
+    const entries = await new Promise((resolve, reject) => {
+      collection.find({}, { _id: 0 }, (err, docs) => {
+        if (err) return reject(err);
+        return resolve(docs);
+      });
+    });
+
+    if (!fetchAllObject) return entries;
+
+    // TODO - We currently don't have defined behaviors for duplicate keys,
+    // or for documents with no key.
+    const objEntries = {};
+
+    entries.forEach(entry => {
+      let entryKey = entry[key];
+      if (entryKey === undefined) return;
+      if (typeof entryKey !== "string") entryKey = JSON.stringify(entryKey);
+      objEntries[entryKey] = entry;
+    });
+
+    return objEntries;
+  }
 
   async fetch(config = {}, id) {
     const key = this.resolveEntityKey(config);
