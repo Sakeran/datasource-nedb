@@ -12,7 +12,7 @@ describe("hasData", () => {
     try {
       await nDB.hasData(config);
     } catch (e) {
-      expect.fail("Threw given an empty datastore.");
+      expect().fail("Threw given an empty datastore.");
     }
   });
 
@@ -25,7 +25,7 @@ describe("hasData", () => {
     try {
       await nDB.hasData(config);
     } catch (e) {
-      expect.fail("Threw given an empty datastore.");
+      expect().fail("Threw given an empty datastore.");
     }
   });
 

@@ -28,10 +28,12 @@ exports.Instance = () => new NeDBDataSource({}, exports.DSDir());
  * Create a sample (hydrated) entity document for testing.
  */
 exports.Entity = ({
+  id = 0,
   name = "Entity",
   description = "An Entity",
   metadata = {}
 }) => ({
+  id,
   name,
   description,
   metadata
@@ -42,8 +44,11 @@ exports.Entity = ({
  */
 exports.Entities = (...entities) =>
   entities.map((e, i) => {
+    if (!e.id) {
+      e.id = i;
+    }
     if (!e.name) {
-      e.name = `Entity ${i}`;
+      e.name = `Entity_${i}`;
     }
     return exports.Entity(e);
   });

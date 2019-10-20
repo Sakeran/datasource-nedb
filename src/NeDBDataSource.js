@@ -36,7 +36,27 @@ class NeDBDataSource {
 
   fetchAll(config = {}) {}
 
-  fetch(config = {}, id) {}
+  async fetch(config = {}, id) {
+    const key = this.resolveEntityKey(config);
+    if (!key)
+      throw new Error("No key configured for NeDBDataSource 'fetch' action");
+
+    const datasource = await this.loadCollection(config);
+
+    const query = {};
+    query[key] = id;
+
+    return await new Promise((resolve, reject) => {
+      datasource.findOne(query, { _id: 0 }, (err, doc) => {
+        if (err) return reject(err);
+        if (!doc)
+          return reject(
+            new Error(`Document with key/value {${key}: ${id}} not found.`)
+          );
+        return resolve(doc);
+      });
+    });
+  }
 
   replace(config = {}, data) {}
 

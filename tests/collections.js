@@ -180,7 +180,7 @@ describe("loadCollection", () => {
     try {
       await nDB.loadCollection(config);
     } catch (e) {
-      expect.fail("loadCollection operation failed");
+      expect().fail("loadCollection operation failed");
     }
 
     expect(fs.existsSync(collectionPath)).to.be(true);
@@ -195,7 +195,7 @@ describe("loadCollection", () => {
 
     try {
       await nDB.loadCollection(config);
-      expect.fail("Should have thrown on missing datasource");
+      expect().fail("Should have thrown on missing datasource");
     } catch (e) {}
 
     expect(fs.existsSync(collectionPath)).to.be(false);
@@ -206,7 +206,7 @@ describe("loadCollection", () => {
 
     try {
       await nDB.loadCollection(config);
-      expect.fail("Should have thrown on missing datasource");
+      expect().fail("Should have thrown on missing datasource");
     } catch (e) {}
 
     expect(fs.existsSync(collectionPath)).to.be(false);
