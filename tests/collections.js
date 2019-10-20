@@ -152,19 +152,72 @@ it("resolves a custom bundle path with collection name", () => {
   );
 });
 
-xit("creates a datasource file upon loading if needed", () => {
+it("creates a missing datasource if 'createMissing' is true", async () => {
   const nDB = helpers.Instance();
 
-  let config = { collection: "players" };
+  let config = { collection: "players", createMissing: true };
   let collectionPath = nDB.resolveCollectionPath(config);
   expect(fs.existsSync(collectionPath)).to.be(false);
 
-  nDB.loadCollection(config);
+  try {
+    await nDB.loadCollection(config);
+  } catch (e) {
+    expect.fail("loadCollection operation failed");
+  }
+
   expect(fs.existsSync(collectionPath)).to.be(true);
 });
 
-xit("contains a collection of loaded datasources", () => {
+it("throws on a missing datasource if 'createMissing' is false (default)", async () => {
   const nDB = helpers.Instance();
-  expect(nDB.datasources).to.be.a("object");
-  expect(nDB.datasources).to.be.empty();
+
+  let config = { collection: "players", createMissing: false };
+  let collectionPath = nDB.resolveCollectionPath(config);
+  expect(fs.existsSync(collectionPath)).to.be(false);
+
+  try {
+    await nDB.loadCollection(config);
+    expect.fail("Should have thrown on missing datasource");
+  } catch (e) {}
+
+  expect(fs.existsSync(collectionPath)).to.be(false);
+
+  config = { collection: "players" };
+  collectionPath = nDB.resolveCollectionPath(config);
+  expect(fs.existsSync(collectionPath)).to.be(false);
+
+  try {
+    await nDB.loadCollection(config);
+    expect.fail("Should have thrown on missing datasource");
+  } catch (e) {}
+
+  expect(fs.existsSync(collectionPath)).to.be(false);
 });
+
+it ("generates a datasource key based on loader config", () => {
+  const nDB = helpers.Instance();
+
+  let config = { collection: "players" };
+  expect(nDB.resolveDatasourceKey(config)).to.be('_:_:players');
+  
+  config = { collection: 'miscData', bundle: 'examples'};
+  expect(nDB.resolveDatasourceKey(config)).to.be('examples:_:miscData');
+
+  config = { collection: 'miscData', bundle: 'examples', area: 'test-area'};
+  expect(nDB.resolveDatasourceKey(config)).to.be('examples:test-area:miscData');
+})
+
+it("contains a collection of loaded datasources", async () => {
+  const nDB = helpers.Instance();
+  expect(nDB.datasources).to.be.a(Map);
+  expect(nDB.datasources.size).to.be(0);
+
+  let config = { collection: "players", createMissing: true };
+  await nDB.loadCollection(config);
+  
+  expect(nDB.datasources.size).to.be(1);
+
+  const key = nDB.resolveDatasourceKey(config);
+  expect(nDB.datasources.has(key)).to.be(true);
+});
+
