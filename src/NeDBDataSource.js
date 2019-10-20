@@ -40,16 +40,15 @@ class NeDBDataSource {
    * @throws {Error} If config.createMissing is false, and no .db file is present.
    */
   async loadCollection(config) {
-    const collectionPath = this.resolveCollectionPath(config);
-
-    const { createMissing } = config;
-
     // Create a key for our datasources map.
     const key = this.resolveDatasourceKey(config);
 
     // Datasources in this map are considered current and loaded.
     let datasource = this.datasources.get(key);
-    if (datasource) return;
+    if (datasource) return datasource;
+
+    const collectionPath = this.resolveCollectionPath(config);
+    const { createMissing } = config;
 
     // If the datasource file doesn't exist, throw unless
     // the loader config says otherwise.
@@ -75,6 +74,7 @@ class NeDBDataSource {
     }
 
     this.datasources.set(key, datasource);
+    return datasource;
   }
 
   /**
@@ -126,7 +126,7 @@ class NeDBDataSource {
   /**
    * Return a map key for the datasource indicated by the given loader
    * config.
-   * @param {object} config 
+   * @param {object} config
    * @return {string}
    */
   resolveDatasourceKey(config) {

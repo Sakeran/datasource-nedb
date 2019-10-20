@@ -3,6 +3,7 @@
 const expect = require("expect.js");
 const path = require("path");
 const fs = require("fs");
+const Datasource = require("nedb");
 
 const helpers = require("./_helpers");
 
@@ -211,6 +212,15 @@ describe("loadCollection", () => {
     expect(fs.existsSync(collectionPath)).to.be(false);
   });
 
+  it("returns a reference to a NeDB Datasource", async () => {
+    const nDB = helpers.Instance();
+
+    let config = { collection: "players", createMissing: true };
+    const datasource = await nDB.loadCollection(config);
+
+    expect(datasource).to.be.a(Datasource);
+  });
+
   it("contains a collection of loaded datasources", async () => {
     const nDB = helpers.Instance();
     expect(nDB.datasources).to.be.a(Map);
@@ -223,5 +233,24 @@ describe("loadCollection", () => {
 
     const key = nDB.resolveDatasourceKey(config);
     expect(nDB.datasources.has(key)).to.be(true);
+  });
+
+  it("doesn't load a datasource more than once", async () => {
+    const nDB = helpers.Instance();
+    expect(nDB.datasources).to.be.a(Map);
+    expect(nDB.datasources.size).to.be(0);
+
+    let config = { collection: "players", createMissing: true };
+
+    const ds1 = await nDB.loadCollection(config);
+    expect(ds1).to.be.a(Datasource);
+    expect(nDB.datasources.size).to.be(1);
+    
+    
+    const ds2 = await nDB.loadCollection(config);
+    expect(ds2).to.be.a(Datasource);
+    expect(nDB.datasources.size).to.be(1);
+
+    expect(ds1).to.be(ds2);
   });
 });
