@@ -60,7 +60,23 @@ class NeDBDataSource {
 
   replace(config = {}, data) {}
 
-  update(config = {}, id, data) {}
+  async update(config = {}, id, data) {
+    const key = this.resolveEntityKey(config);
+    if (!key)
+      throw new Error("No key configured for NeDBDataSource 'update' action");
+
+    const datasource = await this.loadCollection(config);
+
+    const query = {};
+    query[key] = id;
+
+    return await new Promise((resolve, reject) => {
+      datasource.update(query, data, { upsert: true }, err => {
+        if (err) return reject(err);
+        return resolve();
+      });
+    });
+  }
 
   /**
    * Define a NeDB Datasource object and store a reference to it.
