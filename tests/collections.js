@@ -1,6 +1,5 @@
 "use strict";
 
-const NeDBDataSource = require("../src/NeDBDataSource");
 const expect = require("expect.js");
 const path = require("path");
 const fs = require("fs");
