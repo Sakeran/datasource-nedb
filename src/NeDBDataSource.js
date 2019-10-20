@@ -25,7 +25,7 @@ class NeDBDataSource {
 
   async hasData(config = {}) {
     const collection = await this.loadCollection(config);
-    
+
     return await new Promise((resolve, reject) => {
       collection.count({}, (err, count) => {
         if (err) return reject(err);
@@ -141,6 +141,20 @@ class NeDBDataSource {
   resolveDatasourceKey(config) {
     const { bundle, area, collection } = config;
     return `${bundle || "_"}:${area || "_"}:${collection}`;
+  }
+
+  /**
+   * Returns the Entity/Document key indicated by the given loader config.
+   * If config.key is not set to a valid string, the loader will be
+   * unable to use the 'fetch' and 'update' methods.
+   * @param {*} config
+   * @return {string|null}
+   */
+  resolveEntityKey(config) {
+    const { key } = config;
+
+    if (typeof key !== "string") return null;
+    return key;
   }
 }
 
