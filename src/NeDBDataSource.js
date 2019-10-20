@@ -23,7 +23,16 @@ class NeDBDataSource {
     this.datasources = new Map();
   }
 
-  hasData(config = {}) {}
+  async hasData(config = {}) {
+    const collection = await this.loadCollection(config);
+    
+    return await new Promise((resolve, reject) => {
+      collection.count({}, (err, count) => {
+        if (err) return reject(err);
+        return resolve(count > 0);
+      });
+    });
+  }
 
   fetchAll(config = {}) {}
 

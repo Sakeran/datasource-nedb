@@ -23,3 +23,49 @@ exports.DSDir = () => tmp.dirSync({ unsafeCleanup: true }).name;
  */
 
 exports.Instance = () => new NeDBDataSource({}, exports.DSDir());
+
+/**
+ * Create a sample (hydrated) entity document for testing.
+ */
+exports.Entity = ({
+  name = "Entity",
+  description = "An Entity",
+  metadata = {}
+}) => ({
+  name,
+  description,
+  metadata
+});
+
+/**
+ * Creates an array of entity documents for testing.
+ */
+exports.Entities = (...entities) =>
+  entities.map((e, i) => {
+    if (!e.name) {
+      e.name = `Entity ${i}`;
+    }
+    return exports.Entity(e);
+  });
+
+/**
+ * Creates and populates a datastore in the given datasource
+ */
+exports.Populate = async (nDB, count = 1, collection = "players") => {
+  const config = { collection, createMissing: true };
+  let datastore = await nDB.loadCollection(config);
+
+  let entities = [];
+  count = Math.max(1, count);
+  for (let i = 0; i <= count; i++) {
+    entities.push({});
+  }
+  entities = exports.Entities(...entities);
+
+  return await new Promise((resolve, reject) => {
+    datastore.insert(entities, err => {
+      if (err) return reject(err);
+      return resolve();
+    });
+  });
+};
