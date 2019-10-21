@@ -4,6 +4,14 @@ const fs = require("fs");
 const Datasource = require("nedb");
 const sanitize = require("sanitize-filename");
 
+/**
+ * Data Source using NeDB for persistance
+ *
+ * @property {object} config Initial config object
+ * @property {string} rootPath Initial root path
+ * @property {string} path Location where datastores will be saved by default
+ * @property {Map<string, Datastore>} datasources Internal store for datastores
+ */
 class NeDBDataSource {
   constructor(config = {}, rootPath) {
     if (!rootPath || typeof rootPath !== "string") {
@@ -23,6 +31,11 @@ class NeDBDataSource {
     this.datasources = new Map();
   }
 
+  /**
+   * Resolves to true if the specified collection has data.
+   * @param {object} config
+   * @return {Promise<boolean>}
+   */
   async hasData(config = {}) {
     const collection = await this.loadCollection(config);
 
@@ -34,6 +47,13 @@ class NeDBDataSource {
     });
   }
 
+  /**
+   * Resolves to the specified collection's entire dataset.
+   * Returns an array, or an object if config.fetchAllObj is set.
+   * @param {object} config
+   * @return {Promise<Array|Object>}
+   * @throws {Error} If config.fetchAllObj is set without a key
+   */
   async fetchAll(config = {}) {
     const collection = await this.loadCollection(config);
 
@@ -71,6 +91,16 @@ class NeDBDataSource {
     return objEntries;
   }
 
+  /**
+   * Resolves to a single document in the specified dataset,
+   * selected by matching the given id against the specified
+   * key field.
+   * @param {object} config
+   * @param {*} id
+   * @return {Promise<object>}
+   * @throws {Error} if no key is set
+   * @throws {Error} if no matching document exists
+   */
   async fetch(config = {}, id) {
     const key = this.resolveEntityKey(config);
     if (!key)
@@ -93,6 +123,15 @@ class NeDBDataSource {
     });
   }
 
+  /**
+   * Replaces the entire dataset with the given data.
+   *
+   * @param {object} config
+   * @param {Array|object} data
+   * @return {Promise}
+   * @throws {Error} if not passed an array (by default)
+   * @throws {Error} if not passed an object with config.fetchAllObj set
+   */
   async replace(config = {}, data) {
     const collection = await this.loadCollection(config);
 
@@ -127,6 +166,15 @@ class NeDBDataSource {
     });
   }
 
+  /**
+   * Updates a single document in the dataset, upserting
+   * the document if it doesn't exist.
+   * @param {object} config
+   * @param {*} id
+   * @param {object} data
+   * @return {Promise}
+   * @throws {Error} if no key is set
+   */
   async update(config = {}, id, data) {
     const key = this.resolveEntityKey(config);
     if (!key)
@@ -145,6 +193,13 @@ class NeDBDataSource {
     });
   }
 
+  /**
+   * Removes a single document in the dataset, selected by
+   * matching the given id against the specified key field.
+   * @param {object} config
+   * @param {*} id
+   * @return {Promise}
+   */
   async remove(config = {}, id) {
     const key = this.resolveEntityKey(config);
     if (!key)
@@ -171,6 +226,7 @@ class NeDBDataSource {
    * Define a NeDB Datasource object and store a reference to it.
    * @param {object} config
    * @param {boolean} [config.createMissing=false] If true, will create a missing .db file
+   * @return {Promise<Datastore>}
    * @throws {Error} If config.createMissing is false, and no .db file is present.
    */
   async loadCollection(config) {
@@ -215,6 +271,7 @@ class NeDBDataSource {
    * Given the loader config object, return the path
    * to the NeDB datasource
    * @param {object} config loader config
+   * @return {string}
    * @throws {Error}If the collection name is invalid
    * @throws {Error} If the collection path resolves to a directory
    */
