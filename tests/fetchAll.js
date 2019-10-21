@@ -15,13 +15,13 @@ describe("fetchAll", () => {
     expect(entities).to.be.empty();
   });
 
-  it("throws if fetchAllObject is set without a set key", async () => {
+  it("throws if fetchAllObj is set without a set key", async () => {
     const nDB = helpers.Instance();
 
     const config = {
       collection: "players",
       createMissing: true,
-      fetchAllObject: true
+      fetchAllObj: true
     };
     let threw = true;
     try {
@@ -31,13 +31,13 @@ describe("fetchAll", () => {
     expect(threw).to.be(true);
   });
 
-  it("returns an empty object on empty datasets when fetchAllObject is set", async () => {
+  it("returns an empty object on empty datasets when fetchAllObj is set", async () => {
     const nDB = helpers.Instance();
 
     const config = {
       collection: "players",
       createMissing: true,
-      fetchAllObject: true,
+      fetchAllObj: true,
       key: "name"
     };
     const entities = await nDB.fetchAll(config);
@@ -57,14 +57,14 @@ describe("fetchAll", () => {
     expect(entities).to.have.length(3);
   });
 
-  it("returns documents as an object if fetchAllObject is set with a valid key", async () => {
+  it("returns documents as an object if fetchAllObj is set with a valid key", async () => {
     const nDB = helpers.Instance();
     await helpers.Populate(nDB, 3, "players");
 
     const config = {
       collection: "players",
       createMissing: true,
-      fetchAllObject: true,
+      fetchAllObj: true,
       key: "name"
     };
     const entities = await nDB.fetchAll(config);
@@ -76,14 +76,14 @@ describe("fetchAll", () => {
     expect(entities).to.have.property("Entity_2");
   });
 
-  it("stringifies fetchAllObject keys if the value is not a string", async () => {
+  it("stringifies fetchAllObj keys if the value is not a string", async () => {
     const nDB = helpers.Instance();
     await helpers.Populate(nDB, 3, "players");
 
     const config = {
       collection: "players",
       createMissing: true,
-      fetchAllObject: true,
+      fetchAllObj: true,
       key: "id"
     };
     const entities = await nDB.fetchAll(config);

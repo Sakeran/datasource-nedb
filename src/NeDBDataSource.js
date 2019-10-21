@@ -37,13 +37,13 @@ class NeDBDataSource {
   async fetchAll(config = {}) {
     const collection = await this.loadCollection(config);
 
-    const { fetchAllObject } = config;
+    const { fetchAllObj } = config;
     let key;
-    if (fetchAllObject) {
+    if (fetchAllObj) {
       key = this.resolveEntityKey(config);
       if (!key) {
         throw new Error(
-          "No key configured for NeDBDataSource 'fetchAll' action (in fetchAllObject mode)"
+          "No key configured for NeDBDataSource 'fetchAll' action (in fetchAllObj mode)"
         );
       }
     }
@@ -55,7 +55,7 @@ class NeDBDataSource {
       });
     });
 
-    if (!fetchAllObject) return entries;
+    if (!fetchAllObj) return entries;
 
     // TODO - We currently don't have defined behaviors for duplicate keys,
     // or for documents with no key.
@@ -93,7 +93,39 @@ class NeDBDataSource {
     });
   }
 
-  replace(config = {}, data) {}
+  async replace(config = {}, data) {
+    const collection = await this.loadCollection(config);
+
+    const { fetchAllObj } = config;
+
+    if (fetchAllObj) {
+      if (!(typeof data === "object" && data.constructor === Object)) {
+        throw new Error(
+          "Non-object passed to NeDBDataSource 'replace' action (in fetchAllObj mode)"
+        );
+      }
+    } else {
+      if (!Array.isArray(data)) {
+        throw new Error("Non-Array passed to NeDBDataSource 'replace' action");
+      }
+    }
+
+    await new Promise((resolve, reject) => {
+      collection.remove({}, { multi: true }, err => {
+        if (err) return reject(err);
+        return resolve();
+      });
+    });
+
+    let dataset = fetchAllObj ? Object.values(data) : data;
+
+    return await new Promise((resolve, reject) => {
+      collection.insert(dataset, err => {
+        if (err) return reject(err);
+        return resolve();
+      });
+    });
+  }
 
   async update(config = {}, id, data) {
     const key = this.resolveEntityKey(config);
