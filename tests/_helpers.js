@@ -8,12 +8,12 @@ tmp.setGracefulCleanup();
 // Helper functions for testing.
 
 /**
- * Return a random file path for a NeDB datasource.
+ * Return a random file path for a NeDB datastore.
  */
 exports.DSFile = () => tmp.fileSync().name;
 
 /**
- * Return a random directory path where a NeDB datasource might be located.
+ * Return a random directory path where a NeDB datastore might be located.
  */
 exports.DSDir = () => tmp.dirSync({ unsafeCleanup: true }).name;
 
@@ -54,7 +54,7 @@ exports.Entities = (...entities) =>
   });
 
 /**
- * Creates and populates a datastore in the given datasource
+ * Creates and populates a datastore in the given datastore
  */
 exports.Populate = async (nDB, count = 1, collection = "players") => {
   const config = { collection, createMissing: true };

@@ -3,7 +3,7 @@
 const expect = require("expect.js");
 const path = require("path");
 const fs = require("fs");
-const Datasource = require("nedb");
+const Datastore = require("nedb");
 
 const helpers = require("./_helpers");
 
@@ -155,22 +155,22 @@ describe("resolveCollectionPath", () => {
 });
 
 describe("loadCollection", () => {
-  it("generates a datasource key based on loader config", () => {
+  it("generates a datastore key based on loader config", () => {
     const nDB = helpers.Instance();
 
     let config = { collection: "players" };
-    expect(nDB.resolveDatasourceKey(config)).to.be("_:_:players");
+    expect(nDB.resolveDatastoreKey(config)).to.be("_:_:players");
 
     config = { collection: "miscData", bundle: "examples" };
-    expect(nDB.resolveDatasourceKey(config)).to.be("examples:_:miscData");
+    expect(nDB.resolveDatastoreKey(config)).to.be("examples:_:miscData");
 
     config = { collection: "miscData", bundle: "examples", area: "test-area" };
-    expect(nDB.resolveDatasourceKey(config)).to.be(
+    expect(nDB.resolveDatastoreKey(config)).to.be(
       "examples:test-area:miscData"
     );
   });
 
-  it("creates a missing datasource if 'createMissing' is true", async () => {
+  it("creates a missing datastore if 'createMissing' is true", async () => {
     const nDB = helpers.Instance();
 
     let config = { collection: "players", createMissing: true };
@@ -186,7 +186,7 @@ describe("loadCollection", () => {
     expect(fs.existsSync(collectionPath)).to.be(true);
   });
 
-  it("throws on a missing datasource if 'createMissing' is false (default)", async () => {
+  it("throws on a missing datastore if 'createMissing' is false (default)", async () => {
     const nDB = helpers.Instance();
 
     let config = { collection: "players", createMissing: false };
@@ -195,7 +195,7 @@ describe("loadCollection", () => {
 
     try {
       await nDB.loadCollection(config);
-      expect().fail("Should have thrown on missing datasource");
+      expect().fail("Should have thrown on missing datastore");
     } catch (e) {}
 
     expect(fs.existsSync(collectionPath)).to.be(false);
@@ -206,50 +206,50 @@ describe("loadCollection", () => {
 
     try {
       await nDB.loadCollection(config);
-      expect().fail("Should have thrown on missing datasource");
+      expect().fail("Should have thrown on missing datastore");
     } catch (e) {}
 
     expect(fs.existsSync(collectionPath)).to.be(false);
   });
 
-  it("returns a reference to a NeDB Datasource", async () => {
+  it("returns a reference to a NeDB Datastore", async () => {
     const nDB = helpers.Instance();
 
     let config = { collection: "players", createMissing: true };
-    const datasource = await nDB.loadCollection(config);
+    const datastore = await nDB.loadCollection(config);
 
-    expect(datasource).to.be.a(Datasource);
+    expect(datastore).to.be.a(Datastore);
   });
 
-  it("contains a collection of loaded datasources", async () => {
+  it("contains a collection of loaded datastores", async () => {
     const nDB = helpers.Instance();
-    expect(nDB.datasources).to.be.a(Map);
-    expect(nDB.datasources.size).to.be(0);
+    expect(nDB.datastores).to.be.a(Map);
+    expect(nDB.datastores.size).to.be(0);
 
     let config = { collection: "players", createMissing: true };
     await nDB.loadCollection(config);
 
-    expect(nDB.datasources.size).to.be(1);
+    expect(nDB.datastores.size).to.be(1);
 
-    const key = nDB.resolveDatasourceKey(config);
-    expect(nDB.datasources.has(key)).to.be(true);
+    const key = nDB.resolveDatastoreKey(config);
+    expect(nDB.datastores.has(key)).to.be(true);
   });
 
-  it("doesn't load a datasource more than once", async () => {
+  it("doesn't load a datastore more than once", async () => {
     const nDB = helpers.Instance();
-    expect(nDB.datasources).to.be.a(Map);
-    expect(nDB.datasources.size).to.be(0);
+    expect(nDB.datastores).to.be.a(Map);
+    expect(nDB.datastores.size).to.be(0);
 
     let config = { collection: "players", createMissing: true };
 
     const ds1 = await nDB.loadCollection(config);
-    expect(ds1).to.be.a(Datasource);
-    expect(nDB.datasources.size).to.be(1);
+    expect(ds1).to.be.a(Datastore);
+    expect(nDB.datastores.size).to.be(1);
     
     
     const ds2 = await nDB.loadCollection(config);
-    expect(ds2).to.be.a(Datasource);
-    expect(nDB.datasources.size).to.be(1);
+    expect(ds2).to.be.a(Datastore);
+    expect(nDB.datastores.size).to.be(1);
 
     expect(ds1).to.be(ds2);
   });

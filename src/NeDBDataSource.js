@@ -1,7 +1,7 @@
 "use strict";
 const path = require("path");
 const fs = require("fs");
-const Datasource = require("nedb");
+const Datastore = require("nedb");
 const sanitize = require("sanitize-filename");
 
 /**
@@ -10,7 +10,7 @@ const sanitize = require("sanitize-filename");
  * @property {object} config Initial config object
  * @property {string} rootPath Initial root path
  * @property {string} path Location where datastores will be saved by default
- * @property {Map<string, Datastore>} datasources Internal store for datastores
+ * @property {Map<string, Datastore>} datastores Internal store for datastores
  */
 class NeDBDataSource {
   constructor(config = {}, rootPath) {
@@ -28,7 +28,7 @@ class NeDBDataSource {
     this.rootPath = rootPath;
     this.path = path.resolve(rootPath, config.path || "");
 
-    this.datasources = new Map();
+    this.datastores = new Map();
   }
 
   /**
@@ -37,10 +37,10 @@ class NeDBDataSource {
    * @return {Promise<boolean>}
    */
   async hasData(config = {}) {
-    const collection = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     return await new Promise((resolve, reject) => {
-      collection.count({}, (err, count) => {
+      datastore.count({}, (err, count) => {
         if (err) return reject(err);
         return resolve(count > 0);
       });
@@ -55,7 +55,7 @@ class NeDBDataSource {
    * @throws {Error} If config.fetchAllObj is set without a key
    */
   async fetchAll(config = {}) {
-    const collection = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     const { fetchAllObj } = config;
     let key;
@@ -69,7 +69,7 @@ class NeDBDataSource {
     }
 
     const entries = await new Promise((resolve, reject) => {
-      collection.find({}, { _id: 0 }, (err, docs) => {
+      datastore.find({}, { _id: 0 }, (err, docs) => {
         if (err) return reject(err);
         return resolve(docs);
       });
@@ -106,13 +106,13 @@ class NeDBDataSource {
     if (!key)
       throw new Error("No key configured for NeDBDataSource 'fetch' action");
 
-    const datasource = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     const query = {};
     query[key] = id;
 
     return await new Promise((resolve, reject) => {
-      datasource.findOne(query, { _id: 0 }, (err, doc) => {
+      datastore.findOne(query, { _id: 0 }, (err, doc) => {
         if (err) return reject(err);
         if (!doc)
           return reject(
@@ -133,7 +133,7 @@ class NeDBDataSource {
    * @throws {Error} if not passed an object with config.fetchAllObj set
    */
   async replace(config = {}, data) {
-    const collection = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     const { fetchAllObj } = config;
 
@@ -150,7 +150,7 @@ class NeDBDataSource {
     }
 
     await new Promise((resolve, reject) => {
-      collection.remove({}, { multi: true }, err => {
+      datastore.remove({}, { multi: true }, err => {
         if (err) return reject(err);
         return resolve();
       });
@@ -159,7 +159,7 @@ class NeDBDataSource {
     let dataset = fetchAllObj ? Object.values(data) : data;
 
     return await new Promise((resolve, reject) => {
-      collection.insert(dataset, err => {
+      datastore.insert(dataset, err => {
         if (err) return reject(err);
         return resolve();
       });
@@ -180,13 +180,13 @@ class NeDBDataSource {
     if (!key)
       throw new Error("No key configured for NeDBDataSource 'update' action");
 
-    const datasource = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     const query = {};
     query[key] = id;
 
     return await new Promise((resolve, reject) => {
-      datasource.update(query, data, { upsert: true }, err => {
+      datastore.update(query, data, { upsert: true }, err => {
         if (err) return reject(err);
         return resolve();
       });
@@ -205,13 +205,13 @@ class NeDBDataSource {
     if (!key)
       throw new Error("No key configured for NeDBDataSource 'fetch' action");
 
-    const datasource = await this.loadCollection(config);
+    const datastore = await this.loadCollection(config);
 
     const query = {};
     query[key] = id;
 
     return await new Promise((resolve, reject) => {
-      datasource.remove(query, {}, (err, numRemoved) => {
+      datastore.remove(query, {}, (err, numRemoved) => {
         if (err) return reject(err);
         if (numRemoved === 0)
           return reject(
@@ -223,34 +223,34 @@ class NeDBDataSource {
   }
 
   /**
-   * Define a NeDB Datasource object and store a reference to it.
+   * Define a NeDB Datastore object and store a reference to it.
    * @param {object} config
    * @param {boolean} [config.createMissing=false] If true, will create a missing .db file
    * @return {Promise<Datastore>}
    * @throws {Error} If config.createMissing is false, and no .db file is present.
    */
   async loadCollection(config) {
-    // Create a key for our datasources map.
-    const key = this.resolveDatasourceKey(config);
+    // Create a key for our datastores map.
+    const key = this.resolveDatastoreKey(config);
 
-    // Datasources in this map are considered current and loaded.
-    let datasource = this.datasources.get(key);
-    if (datasource) return datasource;
+    // Datastores in this map are considered current and loaded.
+    let datastore = this.datastores.get(key);
+    if (datastore) return datastore;
 
     const collectionPath = this.resolveCollectionPath(config);
     const { createMissing } = config;
 
-    // If the datasource file doesn't exist, throw unless
+    // If the datastore file doesn't exist, throw unless
     // the loader config says otherwise.
     if (!createMissing && !fs.existsSync(collectionPath)) {
       throw new Error(
-        `Datasource file "${collectionPath}" could not be found.`
+        `Datastore file "${collectionPath}" could not be found.`
       );
     }
 
     try {
-      datasource = await new Promise((resolve, reject) => {
-        const ds = new Datasource({
+      datastore = await new Promise((resolve, reject) => {
+        const ds = new Datastore({
           filename: collectionPath,
           autoload: true,
           onload: err => {
@@ -263,13 +263,13 @@ class NeDBDataSource {
       throw e;
     }
 
-    this.datasources.set(key, datasource);
-    return datasource;
+    this.datastores.set(key, datastore);
+    return datastore;
   }
 
   /**
    * Given the loader config object, return the path
-   * to the NeDB datasource
+   * to the NeDB datastore
    * @param {object} config loader config
    * @return {string}
    * @throws {Error}If the collection name is invalid
@@ -315,12 +315,12 @@ class NeDBDataSource {
   }
 
   /**
-   * Return a map key for the datasource indicated by the given loader
+   * Return a map key for the datastore indicated by the given loader
    * config.
    * @param {object} config
    * @return {string}
    */
-  resolveDatasourceKey(config) {
+  resolveDatastoreKey(config) {
     const { bundle, area, collection } = config;
     return `${bundle || "_"}:${area || "_"}:${collection}`;
   }
