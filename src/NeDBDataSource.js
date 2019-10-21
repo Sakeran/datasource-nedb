@@ -145,6 +145,28 @@ class NeDBDataSource {
     });
   }
 
+  async remove(config = {}, id) {
+    const key = this.resolveEntityKey(config);
+    if (!key)
+      throw new Error("No key configured for NeDBDataSource 'fetch' action");
+
+    const datasource = await this.loadCollection(config);
+
+    const query = {};
+    query[key] = id;
+
+    return await new Promise((resolve, reject) => {
+      datasource.remove(query, {}, (err, numRemoved) => {
+        if (err) return reject(err);
+        if (numRemoved === 0)
+          return reject(
+            new Error(`Document with key/value {${key}: ${id}} not found.`)
+          );
+        return resolve();
+      });
+    });
+  }
+
   /**
    * Define a NeDB Datasource object and store a reference to it.
    * @param {object} config
