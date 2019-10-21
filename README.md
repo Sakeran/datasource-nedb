@@ -44,7 +44,7 @@ See a complete list of options below.
 {
   "entitySources": {
     // Example A: A hypothetical datastore for bug reports.
-    // No key is defined, so we can only get everything all
+    // No key is defined, so we can only get everything all at
     // once with `fetchAll`.
     "bugs": {
       "source": "NeDB",
@@ -65,17 +65,17 @@ See a complete list of options below.
       }
     }
 
-    // Example C: Accounts Loader
+    // Example C: Players Loader
     // Ranvier requires that 'fetchAll' return an object here.
-    // Ranvier accounts are keyed by username.
-    "accounts": {
+    // Ranvier players are keyed by name.
+    "players": {
       "source": "NeDB",
       "config": {
-        "collection": "accounts",
+        "collection": "players",
         // Set 'fetchAllObj' to use the return-object behavior.
         "fetchAllObj": true
         // Remember that 'key' is required when using 'fetchAllObj'.
-        "key": "username",
+        "key": "name",
       }
     }
 
