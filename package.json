@@ -1,7 +1,7 @@
 {
-  "name": "datasource-nedb",
+  "name": "ranvier-datasource-nedb",
   "version": "1.0.0",
-  "description": "",
+  "description": "NeDB DataSource for the Ranvier game engine",
   "main": "index.js",
   "dependencies": {
     "nedb": "^1.8.0",
@@ -15,7 +15,7 @@
   "scripts": {
     "test": "mocha tests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "keywords": ["ranvier", "datasource", "NeDB"],
+  "author": "Alexander Morse",
+  "license": "MIT"
 }
